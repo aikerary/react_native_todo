@@ -8,7 +8,8 @@ export default class TodoUseCases {
   }
 
   async addTodo(todo) {
-    return this.todoRepository.addTodo(todo);
+    const createdTodo = await this.todoRepository.addTodo(todo);
+    return createdTodo;
   }
 
   async updateTodo(todo) {

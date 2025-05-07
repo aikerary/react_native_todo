@@ -4,6 +4,7 @@ import TodoRepository from "../../data/repositories/TodoRepository";
 import TodoUseCases from "../../domain/usecases/TodoUseCases";
 import Todo from "../../domain/entities/Todo";
 import StatsService from "../../domain/services/StatsService";
+import { generateId } from '../../utils/idGenerator';
 
 export const TodoContext = createContext({
   todos: [],
@@ -33,7 +34,7 @@ export const TodoProvider = ({ children }) => {
     completionRate: 0
   });
   
-  // Initialize all the layers
+  // Create repository and use cases as objects correctly
   const todoRepository = new TodoRepository(TodoService);
   const todoUseCases = new TodoUseCases(todoRepository);
 
@@ -62,10 +63,20 @@ export const TodoProvider = ({ children }) => {
   const createTodo = async (todoData) => {
     setLoading(true);
     try {
-      const newTodo = new Todo(null, todoData.name, false);
-      await todoUseCases.addTodo(newTodo);
-      await fetchTodos();
-      return true;
+      // Generate an ID for the new todo
+      const id = generateId('todo');
+      const newTodo = new Todo(id, todoData.name, todoData.completed || false);
+      
+      const result = await todoUseCases.addTodo(newTodo);
+      
+      if (result) {
+        // Update local state with the new todo that has our generated ID
+        setTodos(prevTodos => [...prevTodos, result]);
+        return true;
+      }
+      
+      await fetchTodos(); // Fallback to fetching all todos
+      return false;
     } catch (err) {
       setError("Failed to create todo.");
       console.error("Create todo failed:", err);

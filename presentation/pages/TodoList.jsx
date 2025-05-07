@@ -168,7 +168,7 @@ export default function TodoList() {
           <FlatList
             data={todos}
             renderItem={renderItem}
-            keyExtractor={(item) => item.id.toString()}
+            keyExtractor={(item) => item.id || `temp-${Date.now()}`} // Our IDs should always be defined now
             contentContainerStyle={styles.listContainer}
           />
         )}
