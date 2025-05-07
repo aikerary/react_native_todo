@@ -3,11 +3,18 @@ import TodoService from "../../data/datasources/TodoService";
 import TodoRepository from "../../data/repositories/TodoRepository";
 import TodoUseCases from "../../domain/usecases/TodoUseCases";
 import Todo from "../../domain/entities/Todo";
+import StatsService from "../../domain/services/StatsService";
 
 export const TodoContext = createContext({
   todos: [],
   loading: false,
   error: null,
+  stats: {
+    total: 0,
+    completed: 0,
+    pending: 0,
+    completionRate: 0
+  },
   refreshTodos: () => {},
   createTodo: async (data) => {},
   updateTodo: async (todo) => {},
@@ -19,6 +26,12 @@ export const TodoProvider = ({ children }) => {
   const [todos, setTodos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [stats, setStats] = useState({
+    total: 0,
+    completed: 0,
+    pending: 0,
+    completionRate: 0
+  });
   
   // Initialize all the layers
   const todoRepository = new TodoRepository(TodoService);
@@ -40,6 +53,11 @@ export const TodoProvider = ({ children }) => {
   useEffect(() => {
     fetchTodos();
   }, []);
+
+  useEffect(() => {
+    const newStats = StatsService.calculateStats(todos);
+    setStats(newStats);
+  }, [todos]);
 
   const createTodo = async (todoData) => {
     setLoading(true);
@@ -112,6 +130,7 @@ export const TodoProvider = ({ children }) => {
         todos,
         loading,
         error,
+        stats,
         refreshTodos: fetchTodos,
         createTodo,
         updateTodo,

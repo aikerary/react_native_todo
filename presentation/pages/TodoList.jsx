@@ -14,13 +14,22 @@ import {
   Checkbox
 } from "react-native-paper";
 import Swipeable from "react-native-gesture-handler/ReanimatedSwipeable";
+import TodoStats from "../components/TodoStats";
 
 export default function TodoList() {
   const [visible, setVisible] = useState(false);
   const [currentItem, setCurrentItem] = useState(null);
   const [inputValue, setInputValue] = useState("");
-  const { updateTodo, createTodo, todos, refreshTodos, deleteTodo, toggleTodoComplete, loading } =
-    useContext(TodoContext);
+  const {
+    updateTodo,
+    createTodo,
+    todos,
+    refreshTodos,
+    deleteTodo,
+    toggleTodoComplete,
+    loading,
+    stats
+  } = useContext(TodoContext);
 
   useEffect(() => {
     refreshTodos();
@@ -48,16 +57,25 @@ export default function TodoList() {
         <View style={[styles.item, item.completed && styles.completedItem]}>
           <View style={styles.itemLeftSection}>
             <Checkbox
-              status={item.completed ? 'checked' : 'unchecked'}
+              status={item.completed ? "checked" : "unchecked"}
               onPress={() => toggleComplete(item.id)}
               color="#6200ee"
             />
-            <Text style={[styles.itemText, item.completed && styles.completedText]}>
+            <Text
+              style={[styles.itemText, item.completed && styles.completedText]}
+            >
               {item.name}
             </Text>
           </View>
           <View style={styles.buttonGroup}>
-            <Text style={styles.statusText}>
+            <Text
+              style={[
+                styles.statusText,
+                item.completed
+                  ? styles.completedStatusText
+                  : styles.pendingStatusText
+              ]}
+            >
               {item.completed ? "Completed" : "Pending"}
             </Text>
             <Button
@@ -84,7 +102,7 @@ export default function TodoList() {
     if (inputValue.trim() === "") {
       return;
     }
-    
+
     if (currentItem) {
       await updateTodo({
         id: currentItem.id,
@@ -127,18 +145,24 @@ export default function TodoList() {
   return (
     <View style={styles.container}>
       <Appbar.Header style={styles.header}>
-        <Appbar.Content title="Todo Checklist" titleStyle={styles.headerTitle} />
-        <Appbar.Action 
-          icon="refresh" 
-          onPress={refreshTodos} 
+        <Appbar.Content
+          title="Todo Checklist"
+          titleStyle={styles.headerTitle}
+        />
+        <Appbar.Action
+          icon="refresh"
+          onPress={refreshTodos}
           color="white"
           disabled={loading}
         />
       </Appbar.Header>
       <View style={styles.content}>
+        {todos.length > 0 && <TodoStats stats={stats} />}
         {todos.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No todos yet. Add your first one!</Text>
+            <Text style={styles.emptyText}>
+              No todos yet. Add your first one!
+            </Text>
           </View>
         ) : (
           <FlatList
@@ -173,7 +197,7 @@ export default function TodoList() {
             <View style={styles.modalCheckboxContainer}>
               <Text>Mark as completed: </Text>
               <Checkbox
-                status={currentItem.completed ? 'checked' : 'unchecked'}
+                status={currentItem.completed ? "checked" : "unchecked"}
                 onPress={() => {
                   setCurrentItem({
                     ...currentItem,
@@ -264,13 +288,20 @@ const styles = StyleSheet.create({
   },
   buttonGroup: {
     flexDirection: "column",
-    alignItems: "flex-end",
+    alignItems: "flex-end"
   },
   statusText: {
     fontSize: 12,
-    color: "#666",
     marginBottom: 4,
     fontStyle: "italic"
+  },
+  completedStatusText: {
+    color: "#4CAF50",
+    fontWeight: "bold"
+  },
+  pendingStatusText: {
+    color: "#FFA000",
+    fontWeight: "bold"
   },
   fab: {
     position: "absolute",
@@ -294,7 +325,7 @@ const styles = StyleSheet.create({
   },
   input: {
     backgroundColor: "white",
-    marginBottom: 20,
+    marginBottom: 20
   },
   rightAction: {
     width: 80,
